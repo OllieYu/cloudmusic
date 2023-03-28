@@ -2,7 +2,7 @@
     <div class="itemMusicList">
         <div class="itemListTop">
             <div class="listLeft">
-                <svg class="icon" aria-hidden="true">
+                <svg class="icon" aria-hidden="true" @click="playMusic()">
                     <use xlink:href="#icon-bofanganniu"></use>
                 </svg>
                 <span>播放全部<span>(共{{ itemList.length }}首)</span></span>
@@ -16,12 +16,12 @@
         </div>
         <div class="itemList">
             <div class="item" v-for="(item, i) in itemList" :key="i">
-                <div class="itemLeft">
+                <div class="itemLeft" @click="playMusic(i)">
                     <span class="leftSpan">{{ i + 1 }}</span>
                     <div>
                         <p>{{ item.name }}</p>
-                        <span v-for="(item1, index) in item.ar" :key="index">{{
-                        item1.name
+                        <span>{{
+                        item.ar.map((item)=> item.name).join(' / ')
                         }}</span>
                     </div>
                 </div>
@@ -38,9 +38,28 @@
     </div>
 </template>
 <script>
+import {useStore} from 'vuex';
+import { getMusicUrl } from '@/request/api/player';
 export default{
     setup(props){
+        const store = useStore();
         console.log(props)
+
+        async function playMusic(i){
+            if( i == undefined){
+                i = 0
+            }
+            store.commit('setPlayList',props.itemList)
+            store.commit('setPlayListIndex',i)
+            let res = await getMusicUrl(props.itemList[i].id)
+            store.commit('setMusicUrl',res.data.data[0].url)
+            store.commit('setIsPlaying',true)
+            console.log(res.data.data[0].url)
+        }
+
+        return {
+            playMusic
+        }
     },
     props:['itemList','subscribedCount']
 }
@@ -61,7 +80,7 @@ export default{
         justify-content: space-between;
         align-items: center;
         .listLeft{
-            width: 2.7rem;
+            width: 2.8rem;
             height: 100%;
             display: flex;
             justify-content: space-between;

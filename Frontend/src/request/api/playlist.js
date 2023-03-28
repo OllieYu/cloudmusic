@@ -10,6 +10,6 @@ export function getPlaylistDetail(data){
 export function getPlaylistItem(data){
     return netEaseCloudMusicService({
         method:"GET",
-        url:`/playlist/track/all?id=${data }&limit=20&offset=0`
+        url:`/playlist/track/all?id=${data}`
     })
 }

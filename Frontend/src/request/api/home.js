@@ -13,3 +13,10 @@ export function getPersonalizedPlaylist(){
         url:"/personalized?limit=10"
     })
 }
+
+export function getMusicUrl(id){
+    return netEaseCloudMusicService({
+        method:"GEt",
+        url:`/song/url/v1?id=${id}&level=exhigh`
+    })
+}
