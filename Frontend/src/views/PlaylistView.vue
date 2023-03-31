@@ -17,11 +17,11 @@ export default{
 
         onMounted(async ()=>{
             let id = useRoute().query.id
-            let res = await getPlaylistDetail(id)
-            state.playlist = res.data.playlist
-            let result = await getPlaylistItem(id)
-            state.itemList = result.data.songs
-            sessionStorage.setItem('itemDetail', JSON.stringify(state))
+            await Promise.all([getPlaylistItem(id),getPlaylistDetail(id)]).then(res=>{
+                state.itemList = res[0].data.songs
+                state.playlist = res[1].data.playlist
+                sessionStorage.setItem('itemDetail', JSON.stringify(state))
+            })
         })
 
         return { state }

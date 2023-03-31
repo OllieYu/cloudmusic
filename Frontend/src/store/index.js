@@ -6,6 +6,7 @@ export default createStore({
     playListIndex:0,
     isPlaying: false,
     musicUrl: "",
+    detailShow: false,
   },
   getters: {
   },
@@ -22,7 +23,10 @@ export default createStore({
     },
     setMusicUrl(state, value) {
       state.musicUrl = value;
-    } 
+    },
+    setDetailShow(state) {
+      state.detailShow = !state.detailShow;
+    }
   },
   actions: {
   },

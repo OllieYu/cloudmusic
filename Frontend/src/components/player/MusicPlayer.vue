@@ -1,6 +1,6 @@
 <template>
     <div class="FooterMusic">
-        <div class="footerLeft">
+        <div class="footerLeft" @click="showPlayerDetail">
             <template v-if="!playList.length">
                 <img :src="avater" alt="">
                 <div>
@@ -20,7 +20,7 @@
         </div>
         <div class="footerRight">
             <svg class="icon play" aria-hidden="true" v-if="!isPlaying" @click="playMusic">
-                <use xlink:href="#icon-bofanganniu" ></use>
+                <use v-show="playList[playListIndex]" xlink:href="#icon-bofanganniu" ></use>
             </svg> 
             <svg class="icon" aria-hidden="true" v-else @click="playMusic">
                 <use xlink:href="#icon-weibiaoti--" ></use>
@@ -30,6 +30,9 @@
             </svg> 
         </div>
         <audio ref="audio" :src="musicUrl"></audio>
+        <van-popup v-model:show="detailShow" position="bottom" :style="{ width:'100%', height:'100%' }">
+            <MusicDetail :music="playList[playListIndex] ? playList[playListIndex] : defaultMusic" :playMusic="playMusic" :isPlaying="isPlaying"/>
+        </van-popup>
     </div>
 </template>
 <script>
@@ -37,13 +40,18 @@ import { mapMutations, useStore} from 'vuex';
 import { onMounted, ref } from 'vue';
 import hookStoreState from '@/store/useState.js';
 import avater from '@/assets/avater.jpg';
-import {getMusicUrl} from '@/request/api/player'
+import MusicDetail from '@/components/player/MusicDetail.vue';
 export default{
 
     setup(){
         const store = useStore();
         const audio = ref(null);
-        const storeStateArr = hookStoreState(['playList','playListIndex','isPlaying','musicUrl']);
+        const storeStateArr = hookStoreState(['playList','playListIndex','isPlaying','musicUrl','detailShow']);
+        const defaultMusic = {
+            name:'Cloud Music',
+            ar:[{name:'Y_Yu'}],
+            al:{picUrl:avater}
+        }
         // const storeMutations = mapMutations(['setIsPlaying'])
         onMounted(()=>{
             audio.value.autoplay = true;
@@ -61,13 +69,22 @@ export default{
             }
         }
         
+        function showPlayerDetail(){
+            store.commit('setDetailShow')
+        }
+        
         return {
             ...storeStateArr,
             // ...storeMutations,
             audio,
+            defaultMusic,
             playMusic,
+            showPlayerDetail,
             avater
         }
+    },
+    components:{
+        MusicDetail
     }
 }
 </script>
@@ -100,7 +117,7 @@ export default{
         }
         span{
             font-size: 0.24rem;
-                color: #ccc;
+                color: #888888;
         }
     }
     .footerRight{
