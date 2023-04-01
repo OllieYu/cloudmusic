@@ -37,7 +37,7 @@
 </template>
 <script>
 import { mapMutations, useStore} from 'vuex';
-import { onMounted, ref } from 'vue';
+import { onMounted, onUpdated, ref } from 'vue';
 import hookStoreState from '@/store/useState.js';
 import avater from '@/assets/avater.jpg';
 import MusicDetail from '@/components/player/MusicDetail.vue';
@@ -56,6 +56,10 @@ export default{
         onMounted(()=>{
             audio.value.autoplay = true;
             console.log(audio)
+        })
+
+        onUpdated(()=>{
+            store.dispatch('getLyric',store.state.playList[store.state.playListIndex].id)
         })
 
         function playMusic(){

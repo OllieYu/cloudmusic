@@ -1,5 +1,5 @@
 <template>
-<img class="bgimg" :src="music.al.picUrl" alt="">
+    <img class="bgimg" :src="music.al.picUrl" alt="">
     <div class="detailTop">
         <div class="detailTopLeft">
             <svg class="icon" aria-hidden="true"  @click="backHome">
@@ -21,10 +21,15 @@
             </svg>   
         </div>
     </div>
-    <div class="detailContent">
+    <div class="detailContent" v-show="state.isLyricShow">
         <img src="@/assets/needle-ab.png" alt="" class="img_needle" :class="{img_needle_active:isPlaying}">
         <img src="@/assets/cd.png" alt="" class="img_cd">
         <img :src="music.al.picUrl" alt="" class="img_ar" :class="[isPlaying ? 'img_ar_active' : 'img_ar_paused']">
+    </div>
+    <div class="musicLyric">
+        <p v-for="item in lyric" :key="item">
+        {{ item.lrc }}
+        </p>
     </div>
     <div class="detailFooter">
         <div class="footerTop">
@@ -69,18 +74,45 @@
 </template>
 <script>
 import { useStore} from 'vuex';
+import {reactive, computed} from 'vue';
+import hookStoreState from '@/store/useState.js';
 export default{
     setup(props){
         const store = useStore();
-        
+        const state = reactive({
+            isLyricShow:false
+        })
+        const storeStateArr = hookStoreState(['lyricList']);
         console.log(props.music)
 
         function backHome(){
             store.commit('setDetailShow')
         }
 
+        const lyric = computed(() => {
+            let arr = {}
+            console.log(store.state.lyricList)
+            if(store.state.lyricList){
+                arr = store.state.lyricList.lyric.split(/[(\r\n)\r\n]+/)
+                .filter(item=>item !== '' )
+                .map((item) => {
+                    let time = item.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/)
+                    let lrc = item.replace(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/g, '')
+                    let min = time[1]
+                    let sec = time[2]
+                    let ms = time[3]
+                    return {min,sec,ms,lrc}
+                })
+                return arr
+            }
+            
+        })
+
         return {
-            backHome
+            ...storeStateArr,
+            state,
+            backHome,
+            lyric
         }
     },
     props:['music','playMusic','isPlaying'],
@@ -192,6 +224,19 @@ export default{
         100% {
             transform: rotateZ(360deg);
         }   
+    }
+}
+.musicLyric{
+    width: 100%;
+    height: 8rem;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    margin-top: .3rem;
+    overflow: scroll;
+    p{
+        color: #f5f5f5;
+        margin-bottom: .6rem;
     }
 }
 .detailFooter {

@@ -13,3 +13,10 @@ export function getPlaylistItem(data){
         url:`/playlist/track/all?id=${data}`
     })
 }
+
+export function getLyric(data){
+    return netEaseCloudMusicService({
+        method:"GET",
+        url:`/lyric?id=${data}`
+    })
+}

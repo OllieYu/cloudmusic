@@ -1,3 +1,4 @@
+import { getLyric } from '@/request/api/playlist';
 import { createStore } from 'vuex'
 
 export default createStore({
@@ -7,6 +8,7 @@ export default createStore({
     isPlaying: false,
     musicUrl: "",
     detailShow: false,
+    lyricList: {}
   },
   getters: {
   },
@@ -26,9 +28,16 @@ export default createStore({
     },
     setDetailShow(state) {
       state.detailShow = !state.detailShow;
+    },
+    setLyricList(state, value) {
+      state.lyricList = value;
     }
   },
   actions: {
+    async getLyric(context, value) {
+      let res = await getLyric(value);
+      context.commit("setLyricList", res.data.lrc);
+    }
   },
   modules: {
   }
