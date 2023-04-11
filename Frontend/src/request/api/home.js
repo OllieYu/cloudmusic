@@ -20,3 +20,10 @@ export function getMusicUrl(id){
         url:`/song/url/v1?id=${id}&level=exhigh`
     })
 }
+
+export function getSearchMusic(data){
+    return netEaseCloudMusicService({
+        method:"GEt",
+        url:`/cloudsearch?keywords=${data}`
+    })
+}

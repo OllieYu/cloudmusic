@@ -29,18 +29,19 @@
                 <use xlink:href="#icon-zu"></use>
             </svg> 
         </div>
-        <audio ref="audio" :src="musicUrl"></audio>
+        <audio ref="audio" :src="musicUrl" @timeupdate="updateTime"></audio>
         <van-popup v-model:show="detailShow" position="bottom" :style="{ width:'100%', height:'100%' }">
-            <MusicDetail :music="playList[playListIndex] ? playList[playListIndex] : defaultMusic" :playMusic="playMusic" :isPlaying="isPlaying"/>
+            <MusicDetail :music="playList[playListIndex] ? playList[playListIndex] : defaultMusic" :playMusic="playMusic" :isPlaying="isPlaying" :addDuration="addDuration"/>
         </van-popup>
     </div>
 </template>
 <script>
-import { mapMutations, useStore} from 'vuex';
-import { onMounted, onUpdated, ref } from 'vue';
+import { useStore} from 'vuex';
+import { onMounted, onUpdated, ref, watch } from 'vue';
 import hookStoreState from '@/store/useState.js';
 import avater from '@/assets/avater.jpg';
 import MusicDetail from '@/components/player/MusicDetail.vue';
+import { getMusicUrl } from '@/request/api/player';
 export default{
 
     setup(){
@@ -52,7 +53,6 @@ export default{
             ar:[{name:'Y_Yu'}],
             al:{picUrl:avater}
         }
-        // const storeMutations = mapMutations(['setIsPlaying'])
         onMounted(()=>{
             audio.value.autoplay = true;
             console.log(audio)
@@ -60,13 +60,21 @@ export default{
 
         onUpdated(()=>{
             store.dispatch('getLyric',store.state.playList[store.state.playListIndex].id)
+            addDuration()
+        })
+
+        watch(()=>store.state.playListIndex,async()=>{
+            store.dispatch('getLyric',store.state.playList[store.state.playListIndex].id)
+            addDuration()
+            let res = await getMusicUrl(store.state.playList[store.state.playListIndex].id)
+            store.commit('setMusicUrl',res.data.data[0].url)
         })
 
         function playMusic(){
             if(audio.value.paused){
                 audio.value.play();
                 store.commit('setIsPlaying',true)
-                
+                updateTime
             }else{
                 audio.value.pause();
                 store.commit('setIsPlaying',false)
@@ -76,14 +84,27 @@ export default{
         function showPlayerDetail(){
             store.commit('setDetailShow')
         }
+
+        function updateTime(e){
+            store.commit('setMusicTime',e.target.currentTime)
+            console.log(e)
+            // if(e.target.ended === true){
+            //     store.commit('setIsPlaying',false)
+            // }
+        }
         
+        function addDuration(){
+            store.commit('setDuration',audio.value.duration)
+        }
+
         return {
             ...storeStateArr,
-            // ...storeMutations,
             audio,
             defaultMusic,
             playMusic,
             showPlayerDetail,
+            updateTime,
+            addDuration,
             avater
         }
     },

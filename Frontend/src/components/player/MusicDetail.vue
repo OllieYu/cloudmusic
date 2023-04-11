@@ -21,13 +21,13 @@
             </svg>   
         </div>
     </div>
-    <div class="detailContent" v-show="state.isLyricShow">
+    <div class="detailContent" v-show="!state.isLyricShow" @click="lyricShowSwitch">
         <img src="@/assets/needle-ab.png" alt="" class="img_needle" :class="{img_needle_active:isPlaying}">
         <img src="@/assets/cd.png" alt="" class="img_cd">
-        <img :src="music.al.picUrl" alt="" class="img_ar" :class="[isPlaying ? 'img_ar_active' : 'img_ar_paused']">
+        <img :src="music.al.picUrl" alt="" class="img_ar"  :class="[isPlaying ? 'img_ar_active' : 'img_ar_paused']">
     </div>
-    <div class="musicLyric">
-        <p v-for="item in lyric" :key="item">
+    <div class="musicLyric" ref="lyricScroll" v-show="state.isLyricShow" @click="lyricShowSwitch">
+        <p v-for="item in lyric" :key="item" :class="{active:(musicTime*1000 >= item.timeNum && musicTime*1000< item.next)}" ref="songLyric">
         {{ item.lrc }}
         </p>
     </div>
@@ -49,12 +49,14 @@
                 <use xlink:href="#icon-liebiao-"></use>
             </svg>
         </div>
-        <div class="footerContent"></div>
+        <div class="footerContent">
+            <input type="range" class="range" min="0" :max="duration" v-model="musicTime" step="0.05">
+        </div>
         <div class="footer">
             <svg class="icon" aria-hidden="true">
                 <use xlink:href="#icon-xunhuan"></use>
             </svg>
-            <svg class="icon" aria-hidden="true">
+            <svg class="icon" aria-hidden="true"  @click="goPlay(-1)">
                 <use xlink:href="#icon-shangyishoushangyige"></use>
             </svg>
             <svg class="icon bofang" aria-hidden="true" v-if="!isPlaying" @click="playMusic">
@@ -63,7 +65,7 @@
             <svg class="icon bofang" aria-hidden="true" v-else @click="playMusic">
                 <use xlink:href="#icon-zanting"></use>
             </svg>
-            <svg class="icon" aria-hidden="true">
+            <svg class="icon" aria-hidden="true"  @click="goPlay(1)">
                 <use xlink:href="#icon-xiayigexiayishou"></use>
             </svg>
             <svg class="icon" aria-hidden="true">
@@ -74,48 +76,102 @@
 </template>
 <script>
 import { useStore} from 'vuex';
-import {reactive, computed} from 'vue';
+import {reactive, computed, watch, ref, onMounted, onUpdated} from 'vue';
 import hookStoreState from '@/store/useState.js';
 export default{
     setup(props){
         const store = useStore();
+        const lyricScroll = ref(null);
+        const songLyric = ref(null);
         const state = reactive({
             isLyricShow:false
         })
-        const storeStateArr = hookStoreState(['lyricList']);
+        const storeStateArr = hookStoreState(['lyricList','musicTime','playList','playListIndex','duration']);
         console.log(props.music)
 
-        function backHome(){
-            store.commit('setDetailShow')
-        }
+        onUpdated(()=>{
+            props.addDuration()
+        })
 
         const lyric = computed(() => {
             let arr = {}
-            console.log(store.state.lyricList)
+            // console.log(store.state.lyricList)
             if(store.state.lyricList){
                 arr = store.state.lyricList.lyric.split(/[(\r\n)\r\n]+/)
-                .filter(item=>item !== '' )
+                .filter(item=> {
+                    let lrc = item.replace(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/g, '')
+                    let time = item.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/)
+                    return item !== '' && lrc !== ' '&& lrc !== '' && time !== null
+                })
                 .map((item) => {
                     let time = item.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/)
                     let lrc = item.replace(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/g, '')
                     let min = time[1]
                     let sec = time[2]
                     let ms = time[3]
-                    return {min,sec,ms,lrc}
+                    let timeNum = parseInt(min) * 60 * 1000 + parseInt(sec) * 1000 + parseInt(ms)
+                    return {min,sec,ms,lrc,timeNum}
                 })
+                arr.forEach((element,i) => {
+                    if(i === arr.length - 1 || isNaN(arr[i+1].timeNum)){
+                        element.next = 100000
+                    }else{
+                        element.next = arr[i+1].timeNum
+                    }
+                });
+
+                // console.log(arr)
                 return arr
             }
             
         })
 
+        watch(storeStateArr.musicTime, (newVal, oldVal) => {
+            console.log(songLyric.value)
+            let index = songLyric.value.findIndex((item) => {
+                return item.className === 'active'
+            })
+            if(songLyric.value[index]){
+                if(songLyric.value[index].offsetTop > 300){
+                lyricScroll.value.scrollTop = songLyric.value[index].offsetTop - 300
+                }
+            }
+            if(newVal === store.state.duration){
+                goPlay(1)
+            }
+        })
+
+        function backHome(){
+            store.commit('setDetailShow')
+            state.isLyricShow = false
+        }
+
+        function lyricShowSwitch(){
+            state.isLyricShow = !state.isLyricShow
+        }
+
+        async function goPlay(num){
+            let index = store.state.playListIndex + num
+            if(index < 0){
+                index = store.state.playList.length - 1
+            }else if(index > store.state.playList.length - 1){
+                index = 0
+            }
+            store.commit('setPlayListIndex',index) 
+        }
+
         return {
             ...storeStateArr,
             state,
             backHome,
-            lyric
+            lyricShowSwitch,
+            goPlay,
+            lyric,
+            lyricScroll,
+            songLyric
         }
     },
-    props:['music','playMusic','isPlaying'],
+    props:['music','playMusic','isPlaying','addDuration'],
 }
 </script>
 <style lang="less" scoped>
@@ -234,9 +290,14 @@ export default{
     text-align: center;
     margin-top: .3rem;
     overflow: scroll;
+    scroll-behavior: smooth;
     p{
-        color: #f5f5f5;
+        color: #a7a7a7;
         margin-bottom: .6rem;
+    }
+    .active{
+        color: #fff;
+        font-size: .4rem;
     }
 }
 .detailFooter {

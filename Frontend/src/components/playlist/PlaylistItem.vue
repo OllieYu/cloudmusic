@@ -73,6 +73,7 @@ export default{
     // margin-top: 0.2rem;
     border-top-left-radius: 0.4rem;
     border-top-right-radius: 0.4rem;
+    padding-bottom: 1.4rem;
     .itemListTop{
         width: 100%;
         height: 1rem;

@@ -8,7 +8,10 @@ export default createStore({
     isPlaying: false,
     musicUrl: "",
     detailShow: false,
-    lyricList: {}
+    lyricList: {},
+    musicTime:0,
+    duration:0,
+    isLogin:false,
   },
   getters: {
   },
@@ -31,6 +34,15 @@ export default createStore({
     },
     setLyricList(state, value) {
       state.lyricList = value;
+    },
+    setMusicTime(state, value) {
+      state.musicTime = value;
+    },
+    setDuration(state, value) {
+      state.duration = value;
+    },
+    pushPlaylist(state, value) {
+      state.playList.push(value);
     }
   },
   actions: {

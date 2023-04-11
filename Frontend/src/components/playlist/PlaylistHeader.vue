@@ -2,7 +2,7 @@
     <div class="itemMusicTop">
         <img :src="playlist.coverImgUrl" alt="" class="bgimg">
         <div class="itemLeft">
-            <svg class="icon" aria-hidden="true" @click="$router.go(-1)">
+            <svg class="icon" aria-hidden="true" @click="router.go(-1)">
                 <use xlink:href="#icon-zuojiantou"></use>
             </svg>
             <span>歌单</span>
@@ -72,8 +72,10 @@
     </div>
 </template> 
 <script>
+import { useRouter } from 'vue-router'
 export default{
     setup(props){
+        const router = useRouter()
         console.log(props)
         if(props.playlist.creator=""){
             props.playlist.creator = JSON.parse(sessionStorage.getItem.playlist).creator
@@ -85,7 +87,7 @@ export default{
                 return (num / 10000).toFixed(1) + "万";
             }
         }
-        return{changeCount}
+        return{changeCount,router}
     },
     props:['playlist']
 }
