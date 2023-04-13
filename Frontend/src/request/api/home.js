@@ -49,9 +49,9 @@ export function getLoginQRCodeState(key){
     })
 }
 
-export function getEmailLogin(data){
+export function getUserAccount(cookie){
     return netEaseCloudMusicService({
-        method:"GEt",
-        url:`/login?email=${data.email}&password=${data.password}`
+        method:"GET",
+        url:`/user/account?cookie=${cookie}`,
     })
 }

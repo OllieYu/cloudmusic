@@ -7,50 +7,64 @@
     </div>
 </template>
 <script>
-import { getLoginUser } from '@/request/api/home.js'
 import { reactive,ref,onMounted } from 'vue'
 import { useStore } from 'vuex'
-import {getLoginQRCodeState} from '@/request/api/home.js'
+import { getLoginQRCodeState, getLoginQRCodeKey, getLoginQRCode, getUserAccount} from '@/request/api/home';
+import { useRouter } from 'vue-router';
+import { onUpdated } from 'vue';
 export default {
     setup() {
         
         let qrcode = ref('')
         const store = useStore();
-        //   const router = useRouter();
+        const router = useRouter();
+
+        onMounted(async() => {
+            if(localStorage.getItem('loginToken')){
+                await getUserInfo()
+                store.commit('setIsLogin', true)
+                router.push('/userInfo')
+            }
+        })
 
         const login = async () => {
-            let newqrcode = await store.dispatch('getLogin')
-            qrcode.value = newqrcode.code
-            checkQRCode(newqrcode.codeKey)
-            // if(res.data.code===200){//如果返回的code等于200，说明登录成功，就跳转个人中心页面
-            // store.commit('updateIsLogin',true)
-            // store.commit('updateToken',res.data.token)
-            // let result=await getLoginUser(res.data.account.id)
-            // console.log(result);
-            // store.commit('updateUser',result)
-            // router.push('/infoUser')
-            // }else{
-            //     alert("手机号码或者密码错误")
-            //     this.password=''
-            // }
+            let key = await getLoginQRCodeKey()
+                .then(res => res.data.data.unikey)
+                .catch(err => console.log(err))
+            let newQRcode = await getLoginQRCode(key)
+                .then(res => res.data.data.qrimg)
+                .catch(err => console.log(err))
+            qrcode.value = newQRcode
+            
+            let check = setInterval(async() => {
+                await getLoginQRCodeState(key)
+                    .then(async res => {
+                        if (res.data.code === 800) {
+                            console.log(res.data.messgae)
+                            clearInterval(check)
+                        }
+                        if (res.data.code === 803) {
+                            clearInterval(check)
+                            store.commit('setIsLogin', true)
+                            localStorage.setItem('loginToken', res.data.cookie)
+                            router.push('/userInfo') 
+                            getUserInfo()
+                        }                        
+                    }).catch(err => console.log(err))
+            }, 3000)
         }
 
-        const checkQRCode = async(key) => {
-            let check = setInterval(async() => {
-                const res = await getLoginQRCodeState(key).then()
-                if (res.data.code === 800) {
-                    console.log(res.data)
-                    clearInterval(check)
-                }
-                if (res.data.code === 803) {
-                    console.log(res.data)
-                    clearInterval(check)
-                }
-            }, 3000)
+        const getUserInfo = async () => {
+            await getUserAccount(localStorage.getItem('loginToken'))
+                .then(res => {
+                    store.commit('setUser', res)
+                })
+                .catch(err => console.log(err))
         }
 
         return {
             login,
+            getUserInfo,
             qrcode
         }
     },
