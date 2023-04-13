@@ -53,4 +53,12 @@ const router = createRouter({
   routes
 })
 
+router.beforeEach((to, from) => {
+  if(to.path == '/login'){
+    store.commit('setIsMusicPlayerShow', false);
+  }else{
+    store.commit('setIsMusicPlayerShow', true);
+  }
+})
+
 export default router

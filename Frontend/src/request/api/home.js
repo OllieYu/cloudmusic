@@ -27,3 +27,31 @@ export function getSearchMusic(data){
         url:`/cloudsearch?keywords=${data}`
     })
 }
+
+export function getLoginQRCodeKey(){
+    return netEaseCloudMusicService({
+        method:"GEt",
+        url:`/login/qr/key?timestamp=${Date.now()}`
+    })
+}
+
+export function getLoginQRCode(key){
+    return netEaseCloudMusicService({
+        method:"GEt",
+        url:`/login/qr/create?key=${key}&qrimg=true`
+    })
+}
+
+export function getLoginQRCodeState(key){
+    return netEaseCloudMusicService({
+        method:"GET",
+        url:`/login/qr/check?key=${key}&timestamp=${Date.now()}`,
+    })
+}
+
+export function getEmailLogin(data){
+    return netEaseCloudMusicService({
+        method:"GEt",
+        url:`/login?email=${data.email}&password=${data.password}`
+    })
+}

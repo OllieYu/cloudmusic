@@ -1,5 +1,6 @@
 import { getLyric } from '@/request/api/playlist';
 import { createStore } from 'vuex'
+import { getEmailLogin, getLoginQRCodeKey, getLoginQRCode} from '@/request/api/home';
 
 export default createStore({
   state: {
@@ -12,6 +13,7 @@ export default createStore({
     musicTime:0,
     duration:0,
     isLogin:false,
+    isMusicPlayerShow:true,
   },
   getters: {
   },
@@ -41,6 +43,9 @@ export default createStore({
     setDuration(state, value) {
       state.duration = value;
     },
+    setIsMusicPlayerShow(state, value) { 
+      state.isMusicPlayerShow = value;
+    },
     pushPlaylist(state, value) {
       state.playList.push(value);
     }
@@ -49,7 +54,28 @@ export default createStore({
     async getLyric(context, value) {
       let res = await getLyric(value);
       context.commit("setLyricList", res.data.lrc);
-    }
+    },
+    async getLogin(context, value) {
+      let codeKey = await getLoginQRCodeKey();
+      if(codeKey.data.code == 200){
+        let code = await getLoginQRCode(codeKey.data.data.unikey);
+        if(code.data.code == 200){
+          let res = {
+            codeKey: codeKey.data.data.unikey,
+            code: code.data.data.qrimg
+          }
+          return res;
+        }
+      }
+    },
+    async getEmailLogin(context, value) {
+      let res = await getEmailLogin(value);
+      console.log(res);
+      if(res.data.code == 200){
+        // context.commit("setIsLogin", true);
+        return res
+      }
+    },
   },
   modules: {
   }

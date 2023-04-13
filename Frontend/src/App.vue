@@ -1,10 +1,17 @@
 <template>
   <router-view/>
-  <MusicPlayer/>
+  <MusicPlayer v-show="store.state.isMusicPlayerShow"/>
 </template>
 <script>
 import MusicPlayer from '@/components/player/MusicPlayer.vue';
+import { useStore } from 'vuex';
 export default{
+  setup(){
+    const store = useStore();
+    return {
+      store
+    }
+  },
   components:{
     MusicPlayer
   }

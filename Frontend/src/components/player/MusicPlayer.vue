@@ -59,8 +59,11 @@ export default{
         })
 
         onUpdated(()=>{
-            store.dispatch('getLyric',store.state.playList[store.state.playListIndex].id)
-            addDuration()
+            if (store.state.playList.length) {
+                console.log(store.state.playList)
+                store.dispatch('getLyric',store.state.playList[store.state.playListIndex].id)
+                addDuration()
+            }
         })
 
         watch(()=>store.state.playListIndex,async()=>{
